@@ -1,0 +1,67 @@
+﻿<Window x:Class="DraggableTreeViewTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DraggableTreeViewTest"
+        mc:Ignorable="d"
+        Title="Draggable Tree Test" Height="440" Width="500" Loaded="Window_Loaded" ResizeMode="NoResize">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="320"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Label Name="debugLabel"></Label>
+            <Label Name="debugLabel2" Margin="300,0,0,0"></Label>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <AdornerDecorator>
+                <GroupBox Grid.Column="0" Name="GroupBoxName" Header="Family Tree" Margin="10,0,10,10">
+                    <TreeView Name="trvFamilies" AllowDrop="True">
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" />
+                                    <TextBlock Text=" [" Foreground="Blue" />
+                                    <TextBlock Text="{Binding Members.Count}" Foreground="Blue" />
+                                    <TextBlock Text="]" Foreground="Blue" />
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpand}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="local:TreeViewDropHighlighter.IsPossibleDropTarget" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                    </TreeView>
+                </GroupBox>
+            </AdornerDecorator>
+            <Grid Grid.Column="1">
+                <StackPanel Name="ModifyPanel" Margin="0,10,0,0">
+                    <Button Name="AddCategoryBtn" Content="Add" Click="AddCategoryBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
+                    <Button Name="DeleteBtn" Content="Delete" Click="DeleteBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
+                    <Button Name="RenameBtn" Content="Rename" Click="RenameBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
+                    <Button Name="MoveUpBtn" Content="MoveUp" Click="MoveUpBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
+                    <Button Name="MoveDownBtn" Content="MoveDown" Click="MoveDownBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
+                    <Button Name="Cut" Content="Cut" Click="Cut_Click"  Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
+                    <Button Name="Paste" Content="Paste" Click="Paste_Click"  Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0" IsEnabled="False"/>
+                    <Button Name="DefaultBtn" Content="Default" Click="DefaultBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Button Name="OKBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Height="30" Width="100" Click="OKBtn_Click">OK</Button>
+        </Grid>
+    </Grid>
+</Window>
