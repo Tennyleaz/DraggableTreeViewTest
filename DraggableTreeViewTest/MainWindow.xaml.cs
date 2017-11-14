@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -35,6 +36,7 @@ namespace DraggableTreeViewTest
         private void GenerateFakeNodes()
         {
             MyNode root = new MyNode(null) { Name = "root" };
+            root.IsExpand = true;
 
             MyNode family1 = new MyNode(root) { Name = "The Doe's" };
             family1.AddMember(new MyNode(family1) { Name = "John Doe" });
@@ -106,7 +108,11 @@ namespace DraggableTreeViewTest
                     e.Effects = DragDropEffects.None;
                 }
                 else
+                {
                     e.Effects = DragDropEffects.Move;
+                    if (dropTarget.Members.Count > 0)
+                        dropTarget.IsExpand = true;
+                }
                 e.Handled = true;
             }
         }
@@ -183,9 +189,13 @@ namespace DraggableTreeViewTest
                 string s = folderViewModel.Name + ".Parent = " + dropTarget.Name;
                 debugLabel.Content = s;
                 DropToTarget(dropTarget, folderViewModel);
+                dropTarget.IsExpand = true;
             }
         }
 
+        /// <summary>
+        /// Cut the nodes/branch at movingNode, and paste under dropTarget.
+        /// </summary>
         private void DropToTarget(MyNode dropTarget, MyNode movingNode)
         {
             if (dropTarget == null || movingNode == null)
@@ -231,11 +241,16 @@ namespace DraggableTreeViewTest
             MyNode f = trvFamilies.SelectedItem as MyNode;
             if (f != null)
             {
-                MyNode newNode = new MyNode(f) { Name = "New Tree Node" };
+                EditDlg newDlg = new EditDlg("New Tree Node");
+                newDlg.Owner = GetWindow(this);
+                newDlg.ShowDialog();
+                string newName = newDlg.strCategoryName;
+                MyNode newNode = new MyNode(f) { Name = newName };
 
                 // 檢查新名稱是否重複
 
                 myTree.AddNodeAt(f.ID, newNode);
+                f.IsExpand = true;
             }
         }
 
@@ -276,9 +291,7 @@ namespace DraggableTreeViewTest
                     }
                     else
                     {
-                        //if (ft.RenameNode(f.ID, aDlg.strCategoryName))
                         f.Name = aDlg.strCategoryName;
-                        trvFamilies.Items.Refresh();
                     }
                 }
             }
@@ -308,7 +321,7 @@ namespace DraggableTreeViewTest
             if (f != null)
             {
                 myTree.Cut(f);
-                //Paste.IsEnabled = true;
+                Paste.IsEnabled = true;
             }
         }
 
@@ -318,7 +331,7 @@ namespace DraggableTreeViewTest
             if (f != null)
             {
                 myTree.Paste(f.ID);
-                //Paste.IsEnabled = false;
+                Paste.IsEnabled = false;
             }
         }
 
@@ -338,6 +351,23 @@ namespace DraggableTreeViewTest
 
         }
         #endregion
+
+        /// <summary>
+        /// Collapse other nodes when expand a new node.
+        /// </summary>
+        private void trvFamilies_Expanded(object sender, RoutedEventArgs e)
+        {
+            TreeViewItem treeViewItem = e.OriginalSource as TreeViewItem;
+            if (treeViewItem != null && myTree != null)
+            {
+                MyNode node = treeViewItem.DataContext as MyNode;
+                if (node != null)
+                {
+                    myTree.CollapseLastNodeOnExpand(node.ID);
+                    e.Handled = true;                    
+                }
+            }
+        }
     }
 
     public class MyTree
@@ -350,8 +380,29 @@ namespace DraggableTreeViewTest
         public MyNode rootNode;
         private MyNode cutTemplate = null;
         private HashSet<string> cateNames;
+        private string lastExpandedNodeID = null;
 
-        public bool AddNodeAtRoot(MyNode newNode)
+        /// <summary>
+        /// Collapse the whole sub-tree containing lastExpandedNodeID.
+        /// </summary>
+        public void CollapseLastNodeOnExpand(string newGuid)
+        {
+            if (lastExpandedNodeID == null)
+            {
+                lastExpandedNodeID = newGuid;
+                return;
+            }
+            if (newGuid == null)
+                return;
+            if (lastExpandedNodeID == newGuid)
+                return;
+
+            rootNode.CollapseOldNode(lastExpandedNodeID, newGuid);
+
+            lastExpandedNodeID = newGuid;
+        }
+
+        public bool AddNodeUnderRoot(MyNode newNode)
         {
             /*if (cateNames.Contains(newNode.Name))
             {
@@ -430,7 +481,7 @@ namespace DraggableTreeViewTest
         }
     }
 
-    public class MyNode
+    public class MyNode : INotifyPropertyChanged, IEquatable<MyNode>
     {
         public MyNode(MyNode Parent, string guid = null, string name = null)
         {
@@ -443,20 +494,47 @@ namespace DraggableTreeViewTest
             if (name != null)
                 Name = name;
             allChilrenID = new HashSet<string>();
-            IsExpand = true;
+            IsExpand = false;
             allChilrenID.Add(this.ID);
             _parent = Parent;
         }
 
-        public string Name { get; set; }
+        // Declare the event
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
         public string ID { get; set; }
         public string ParentID { get; set; }
         public MyNode _parent;
-        public bool IsExpand { get; set; }
+        public bool IsExpand
+        {
+            get { return _isExpand; }
+            set
+            {
+                _isExpand = value;
+                OnPropertyChanged("IsExpand");
+            }
+        }
         private HashSet<string> allChilrenID;
         private int position = 0;
+        private string _name;
+        private bool _isExpand;
 
         public ObservableCollection<MyNode> Members { get; set; }
+
+        // Create the OnPropertyChanged method to raise the event
+        protected void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
 
         public bool Equals(MyNode other)
         {
@@ -467,7 +545,15 @@ namespace DraggableTreeViewTest
 
         public override bool Equals(object obj)
         {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
             return Equals(obj as MyNode);
+        }
+
+        public override int GetHashCode()
+        {
+            return ID.GetHashCode();
         }
 
         public void AddMember(MyNode childNode)
@@ -741,6 +827,39 @@ namespace DraggableTreeViewTest
                 }
             }
             return false;
+        }
+
+        public void CollapseOldNode(string oldGuid, string newGuid)
+        {
+            if (allChilrenID.Contains(oldGuid))
+            {
+                // 不含newGuid，直接關閉整條Branch
+                if (IsExpand)
+                {                    
+                    if (oldGuid != ID)
+                    {
+                        // 含oldGuid，且是自己的child，要關掉它
+                        foreach (MyNode child in Members)
+                        {
+                            // 尋找包含id的child
+                            if (child.ContainsNode(oldGuid))
+                            {
+                                child.CollapseOldNode(oldGuid, newGuid);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (allChilrenID.Contains(newGuid))
+                    {
+                        // 含newGuid，則不關閉自己
+                    }
+                    else
+                    {
+                        IsExpand = false;  // 關閉自己
+                    }
+                }
+            }
         }
     }
 

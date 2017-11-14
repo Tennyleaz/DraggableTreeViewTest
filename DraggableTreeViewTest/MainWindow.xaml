@@ -18,35 +18,40 @@
         </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
-            <AdornerDecorator>
-                <GroupBox Grid.Column="0" Name="GroupBoxName" Header="Family Tree" Margin="10,0,10,10">
-                    <TreeView Name="trvFamilies" AllowDrop="True">
-                        <TreeView.Resources>
-                            <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Name}" />
-                                    <TextBlock Text=" [" Foreground="Blue" />
-                                    <TextBlock Text="{Binding Members.Count}" Foreground="Blue" />
-                                    <TextBlock Text="]" Foreground="Blue" />
+            <GroupBox Grid.Column="0" Name="GroupBoxName" Header="Family Tree" Margin="10,0,10,10">
+                <local:StretchingTreeView x:Name="trvFamilies" AllowDrop="True" TreeViewItem.Expanded="trvFamilies_Expanded">
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
+                            <Grid Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Name}" Grid.Column="0"/>
+                                <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+                                    <TextBlock Text=" [" Foreground="Blue"/>
+                                    <TextBlock Text="{Binding Members.Count}" Foreground="Blue"/>
+                                    <TextBlock Text="]" Foreground="Blue"/>
                                 </StackPanel>
-                            </HierarchicalDataTemplate>
-                        </TreeView.Resources>
-                        <TreeView.ItemContainerStyle>
-                            <Style TargetType="{x:Type TreeViewItem}">
-                                <Setter Property="IsExpanded" Value="{Binding IsExpand}"/>
-                                <Style.Triggers>
-                                    <Trigger Property="local:TreeViewDropHighlighter.IsPossibleDropTarget" Value="True">
-                                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TreeView.ItemContainerStyle>
-                    </TreeView>
-                </GroupBox>
-            </AdornerDecorator>
+                            </Grid>
+                        </HierarchicalDataTemplate>
+                    </TreeView.Resources>
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpand, Mode=TwoWay}"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Style.Triggers>
+                                <Trigger Property="local:TreeViewDropHighlighter.IsPossibleDropTarget" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </local:StretchingTreeView>
+            </GroupBox>
             <Grid Grid.Column="1">
                 <StackPanel Name="ModifyPanel" Margin="0,10,0,0">
                     <Button Name="AddCategoryBtn" Content="Add" Click="AddCategoryBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
