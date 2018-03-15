@@ -523,10 +523,21 @@ namespace DraggableTreeViewTest
                 OnPropertyChanged("IsExpand");
             }
         }
+        public bool IsPinned
+        {
+            get { return _isPinned; }
+            set
+            {
+                _isPinned = value;
+                OnPropertyChanged("IsPinned");
+            }
+        }
+
         private HashSet<string> allChilrenID;
         private int position = 0;
         private string _name;
         private bool _isExpand;
+        private bool _isPinned;
 
         public ObservableCollection<MyNode> Members { get; set; }
 

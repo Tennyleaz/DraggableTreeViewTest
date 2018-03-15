@@ -6,6 +6,12 @@
         xmlns:local="clr-namespace:DraggableTreeViewTest"
         mc:Ignorable="d"
         Title="Draggable Tree Test" Height="440" Width="500" Loaded="Window_Loaded" ResizeMode="NoResize">
+    <Window.Resources>
+        <!--convert bool to visibility, 
+        see: https://stackoverflow.com/questions/7000819/binding-a-buttons-visibility-to-a-bool-value-in-viewmodel-->
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+    
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -26,16 +32,22 @@
                     <TreeView.Resources>
                         <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
                             <Grid Margin="2">
+                                <!--definition of tree view item-->
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition/>
-                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="20"/>
                                 </Grid.ColumnDefinitions>
+                                <!--tree text-->
                                 <TextBlock Text="{Binding Name}" Grid.Column="0"/>
+                                <!--tree count text-->
                                 <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
                                     <TextBlock Text=" [" Foreground="Blue"/>
                                     <TextBlock Text="{Binding Members.Count}" Foreground="Blue"/>
                                     <TextBlock Text="]" Foreground="Blue"/>
                                 </StackPanel>
+                                <!--pinned icon-->
+                                <Image Grid.Column="2" Width="12" Height="12" Source="tree_pin.png" Visibility="{Binding IsPinned, Converter={StaticResource BoolToVis}}"/>
                             </Grid>
                         </HierarchicalDataTemplate>
                     </TreeView.Resources>
@@ -67,6 +79,7 @@
         </Grid>
         <Grid Grid.Row="2">
             <Button Name="OKBtn" HorizontalAlignment="Center" VerticalAlignment="Top" Height="30" Width="100" Click="OKBtn_Click">OK</Button>
+            <!--<Image  Width="20" Height="20" Source="tree_pin.png" HorizontalAlignment="Left" VerticalAlignment="Top"/>-->
         </Grid>
     </Grid>
 </Window>
