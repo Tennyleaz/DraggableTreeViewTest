@@ -1,0 +1,173 @@
+﻿<Window x:Class="DraggableTreeViewTest.CategoryPanel"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DraggableTreeViewTest"
+        mc:Ignorable="d"
+        Title="CategoryPanel" Height="500" Width="300">
+    <Window.Resources>
+        <!--converter for bool to visibility-->
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        
+        <!--style for pinned category listbox-->
+        <Style TargetType="ListBoxItem" x:Key="listBoxStyle">
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="#FF707070"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" Value="#EEF6FC"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="true">
+                                <Setter Property="Background" TargetName="Bd" Value="#74B4E4"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="true"/>
+                                    <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="Bd" Value="#8CC4ED"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--this inherit from the ToggleButton style-->
+        <Style x:Key="myToggleStyle" BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="RadioButton">
+            <Setter Property="Background" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="true">
+                    <Setter Property="Background" Value="#74B4E4"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--tree view item style-->
+        <Style x:Key="MyTreeStyle" TargetType="{x:Type TreeViewItem}">
+            <Setter Property="IsExpanded" Value="{Binding IsExpand, Mode=TwoWay}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="#FF707070"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Style.Triggers>
+                <Trigger Property="local:TreeViewDropHighlighter.IsPossibleDropTarget" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="true">
+                    <Setter Property="Background" Value="#74B4E4"/>
+                </Trigger>
+                <!--let only selected item get mouse over color
+                see: https://stackoverflow.com/questions/1131161/how-can-i-make-wpf-trigger-for-ismouseover-on-treeviewitem-not-affect-all-parent -->
+                <Trigger Property="local:MyTreeViewHelper.IsMouseDirectlyOverItem" Value="true">
+                    <Setter Property="Background" Value="#EEF6FC"/>
+                </Trigger>
+            </Style.Triggers>
+            <!--override system highlight style
+            see: https://stackoverflow.com/questions/38419400/wpf-treeview-how-to-make-trigger-for-isselected-of-treeviewitem -->
+            <Style.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#74B4E4"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FF707070"/>
+            </Style.Resources>
+        </Style>
+
+    </Window.Resources>
+    <Grid Name="grMain">
+        <Grid Name="CategoryGrid" Panel.ZIndex="0" Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="24" SharedSizeGroup="CategoryGroup"/>
+                <RowDefinition Height="*" SharedSizeGroup="CategoryGroup"/>
+            </Grid.RowDefinitions>
+
+            <!--tree/pinned toggles-->
+            <UniformGrid Rows="1" Grid.Row="0">
+                <RadioButton Style="{StaticResource myToggleStyle}" Name="radioTree" Checked="radioTree_Checked" Content="類別"/>
+                <RadioButton Style="{StaticResource myToggleStyle}" Name="radioPinned" Checked="radioPinned_Checked" Content="釘選"/>
+            </UniformGrid>
+
+            <StackPanel Name="treeViewGrid" Grid.Row="1">
+                <!--我的最愛&未校正聯絡人-->
+                <ListBox Name="FavoriteUncheckedListBox" SelectionMode="Single" BorderThickness="0">
+                    <ListBoxItem Style="{StaticResource listBoxStyle}">我的最愛</ListBoxItem>
+                    <ListBoxItem Style="{StaticResource listBoxStyle}">未校正聯絡人</ListBoxItem>
+                    <Separator/>
+                </ListBox>
+                <!--my tree view-->
+                <local:StretchingTreeView x:Name="tvCategory" AllowDrop="True" BorderBrush="Transparent"
+                                              TreeViewItem.Expanded="tvCategory_Expanded" 
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                                              ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                              ItemContainerStyle="{StaticResource MyTreeStyle}">
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
+                            <!--definition of tree view item, wrapped by a grid-->
+                            <Grid Margin="2" Height="36">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="20"/>
+                                </Grid.ColumnDefinitions>
+                                <!--tree text-->
+                                <TextBlock Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center"/>
+                                <!--tree count text-->
+                                <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock Text=" [" Foreground="Blue"/>
+                                    <TextBlock Text="{Binding Members.Count}" Foreground="Blue"/>
+                                    <TextBlock Text="]" Foreground="Blue"/>
+                                </StackPanel>
+                                <!--pinned icon-->
+                                <Image Grid.Column="2" Width="15" Height="15" Source="tree_pin.png" Visibility="{Binding IsPinned, Converter={StaticResource BoolToVis}}"/>
+                                <Grid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Header"/>
+                                        <MenuItem Header="Copy"/>
+                                        <MenuItem Header="Cut"/>
+                                        <MenuItem Header="Paste"/>
+                                        <MenuItem Header="Move"/>
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
+                            </Grid>
+                        </HierarchicalDataTemplate>
+                    </TreeView.Resources>
+                </local:StretchingTreeView>
+            </StackPanel>
+            
+            <!--pinned listbox-->
+            <ListBox Grid.Row="1" SelectionMode="Single" x:Name="PinnedListBox" Background="Transparent" Focusable="True" Margin="0,0,4,3" 
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Visibility="Collapsed"
+                     IsSynchronizedWithCurrentItem="True" AllowDrop="True" BorderThickness="0"
+                     ItemsSource="{Binding pinnedCategory}"
+                     ItemContainerStyle="{StaticResource listBoxStyle}">
+            </ListBox>
+        </Grid>
+
+
+        <Button Name="testBtn" Content="test" Height="20" Width="60" VerticalAlignment="Bottom" Click="testBtn_Click">
+            <Button.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Menu item 1" />
+                    <MenuItem Header="Menu item 2" />
+                    <Separator />
+                    <MenuItem Header="Menu item 3" />
+                </ContextMenu>
+            </Button.ContextMenu>
+
+        </Button>
+        <!--<Grid Background="Transparent" AllowDrop="False" Visibility="Collapsed" Name="gNotDropPanel"></Grid>-->
+    </Grid>
+</Window>

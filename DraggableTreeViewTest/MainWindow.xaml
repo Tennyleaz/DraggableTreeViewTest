@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DraggableTreeViewTest"
         mc:Ignorable="d"
-        Title="Draggable Tree Test" Height="440" Width="500" Loaded="Window_Loaded" ResizeMode="NoResize">
+        Title="Draggable Tree Test" Height="500" Width="500" Loaded="Window_Loaded" ResizeMode="NoResize">
     <Window.Resources>
         <!--convert bool to visibility, 
         see: https://stackoverflow.com/questions/7000819/binding-a-buttons-visibility-to-a-bool-value-in-viewmodel-->
@@ -15,7 +15,7 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="320"/>
+            <RowDefinition Height="380"/>
             <RowDefinition Height="80"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
@@ -73,6 +73,7 @@
                     <Button Name="MoveDownBtn" Content="MoveDown" Click="MoveDownBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
                     <Button Name="Cut" Content="Cut" Click="Cut_Click"  Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
                     <Button Name="Paste" Content="Paste" Click="Paste_Click"  Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0" IsEnabled="False"/>
+                    <Button Name="PinBtn" Content="Pin/Unpin" Click="PinBtn_Click"  Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
                     <Button Name="DefaultBtn" Content="Default" Click="DefaultBtn_Click" Height="30" Width="120" Background="{x:Null}" Focusable="False" Margin="10,5,10,0"/>
                 </StackPanel>
             </Grid>

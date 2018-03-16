@@ -23,6 +23,33 @@ namespace DraggableTreeViewTest
         {
             return item is StretchingTreeViewItem;
         }
+
+        /// <summary>
+        /// This will clear selecteditem, and fire selectionchanged event.
+        /// see: https://stackoverflow.com/questions/676819/wpf-treeview-clear-selection
+        /// </summary>
+        public void ClearSelection()
+        {
+            ItemCollection ic = base.Items;
+            ItemContainerGenerator icg = base.ItemContainerGenerator;
+            ClearTreeViewItemsControlSelection(ic, icg);
+        }
+
+        private void ClearTreeViewItemsControlSelection(ItemCollection ic, ItemContainerGenerator icg)
+        {
+            if ((ic != null) && (icg != null))
+            {
+                for (int i = 0; i < ic.Count; i++)
+                {
+                    TreeViewItem tvi = icg.ContainerFromIndex(i) as TreeViewItem;
+                    if (tvi != null)
+                    {
+                        ClearTreeViewItemsControlSelection(tvi.Items, tvi.ItemContainerGenerator);
+                        tvi.IsSelected = false;
+                    }
+                }
+            }
+        }
     }
 
     class StretchingTreeViewItem : TreeViewItem
@@ -43,6 +70,7 @@ namespace DraggableTreeViewTest
                     // Remove the middle column which is set to Auto and let it get replaced with the 
                     // last column that is set to Star.
                     grid.ColumnDefinitions.RemoveAt(1);
+                    //grid.Background = System.Windows.Media.Brushes.Yellow;
                 }
             }
         }

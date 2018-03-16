@@ -55,7 +55,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CategoryPanel.xaml.cs">
+      <DependentUpon>CategoryPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MyNode.cs" />
+    <Compile Include="MyTree.cs" />
     <Compile Include="StretchingTreeView.cs" />
+    <Page Include="CategoryPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="EditDlg.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
