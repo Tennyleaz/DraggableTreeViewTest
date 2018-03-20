@@ -1,0 +1,56 @@
+﻿<Window x:Class="DraggableTreeViewTest.CategoryMultiSelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DraggableTreeViewTest"
+        mc:Ignorable="d"
+        Title="CategoryMultiSelectWindow" Height="500" Width="400">
+    <Window.Resources>
+        <!--converter for bool to visibility-->
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="380"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+        <!--<Grid Grid.Row="0">
+            <Label Name="debugLabel"></Label>
+            <Label Name="debugLabel2" Margin="300,0,0,0"></Label>
+        </Grid>-->
+        <GroupBox Grid.Row="1" Name="GroupBoxName" Header="變更類別：" Margin="0,0,0,10">
+            <local:StretchingTreeView x:Name="tvCategory" AllowDrop="True" TreeViewItem.Expanded="tvCategory_Expanded"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="20"/>
+                            </Grid.ColumnDefinitions>
+                            <!--tree text-->
+                            <TextBlock Text="{Binding Name}" Grid.Column="0"/>
+                            <!--multi checkbox-->
+                            <CheckBox IsChecked="{Binding IsChecked}" Grid.Column="1" Visibility="{Binding IsCheckboxAvailable, Converter={StaticResource BoolToVis}}"/>
+                        </Grid>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpand, Mode=TwoWay}"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+            </local:StretchingTreeView>
+        </GroupBox>
+
+        <Grid Grid.Row="2">
+            <Button Name="OKBtn" HorizontalAlignment="Left" VerticalAlignment="Top" Height="30" Width="100" Click="OKBtn_Click" Margin="50,0,0,0">OK</Button>
+            <Button Name="CancelBtn" HorizontalAlignment="Right" VerticalAlignment="Top" Height="30" Width="100" Click="CancelBtn_Click"  Margin="0,0,50,0">Cancel</Button>
+            <!--<Image  Width="20" Height="20" Source="tree_pin.png" HorizontalAlignment="Left" VerticalAlignment="Top"/>-->
+        </Grid>
+    </Grid>
+</Window>

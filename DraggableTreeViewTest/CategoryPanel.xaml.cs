@@ -52,7 +52,10 @@ namespace DraggableTreeViewTest
         private void GenerateFakeNodes()
         {
             MyNode root = new MyNode(null) { Name = "所有聯絡人" };
-            root.IsExpand = true;
+            root.IsExpand = true;            
+
+            MyNode others = new MyNode(root) { Name = "其他聯絡人" };
+            root.AddMember(others);
 
             MyNode family1 = new MyNode(root) { Name = "The Doe's" };
             family1.AddMember(new MyNode(family1) { Name = "John Doe" });
@@ -144,9 +147,7 @@ namespace DraggableTreeViewTest
                 if (dropTarget == null || folderViewModel == null)
                     return;
 
-                //folderViewModel.Parent = dropTarget;
-                string s = folderViewModel.Name + ".Parent = " + dropTarget.Name;
-                
+                // process drop
                 DropToTarget(dropTarget, folderViewModel);
                 dropTarget.IsExpand = true;
             }
@@ -198,14 +199,19 @@ namespace DraggableTreeViewTest
         {
             if (dropTarget == null || movingNode == null)
                 return;
-            if (dropTarget.ID == movingNode.ID)
+            if (dropTarget.ID == movingNode.ID)  // same node cannot move
                 return;
-            if (movingNode.ID == myTree.rootNode.ID)
+            if (movingNode.ID == myTree.rootNode.ID)  // root cannot move
                 return;
-            if (movingNode.ContainsNode(dropTarget.ID))
+            if (movingNode.ContainsNode(dropTarget.ID))  // cannot move into self child
                 return;
-            if (dropTarget.IsDirectChild(movingNode.ID))
+            if (dropTarget.IsDirectChild(movingNode.ID))  // cannot move to same place
                 return;
+            if (dropTarget.ContainsSameDirectChildName(movingNode.Name))  // 目的類別，若是有同名的類別存在時無法搬移
+                return;
+
+            // 不能搬移至，我的最愛、未校正聯絡人、其他聯絡人及From別人幫掃的
+            // note: chung說這些判斷能不能移動/修改，都只由server決定，cliet只負責告訴server說要放到哪裡去而已
 
             string s = "Move \"" + movingNode.Name + "\" under \"" + dropTarget.Name + "\" ？";
             if (MessageBox.Show(s, "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
@@ -243,11 +249,6 @@ namespace DraggableTreeViewTest
             {
                 // 先取消上面兩個listbox的focuse
                 FavoriteUncheckedListBox.SelectedItem = null;
-
-                //if (selectedItem.Members.Count > 0)
-                //    DeleteBtn.IsEnabled = false;
-                //else
-                //    DeleteBtn.IsEnabled = true;
 
                 // change the selected category...
             }
@@ -299,34 +300,47 @@ namespace DraggableTreeViewTest
                 tvCategory.ContextMenu = categoryMenu;
 
                 // add items
-                MenuItem pinItem = new MenuItem();
-                pinItem.Click += PinItem_Click;
+                MenuItem newMenuItem = new MenuItem();
+                newMenuItem.Click += PinItem_Click;
                 if (targetNode.IsPinned)
-                    pinItem.Header = "取消釘選";
+                    newMenuItem.Header = "取消釘選";
                 else
-                    pinItem.Header = "釘選";
-                pinItem.IsEnabled = true;
-                categoryMenu.Items.Add(pinItem);
+                    newMenuItem.Header = "釘選";
+                newMenuItem.IsEnabled = true;
+                categoryMenu.Items.Add(newMenuItem);
 
-                pinItem = new MenuItem();
-                pinItem.Header = "新增類別...";
-                pinItem.Click += AddItem_Click;
-                categoryMenu.Items.Add(pinItem);
+                newMenuItem = new MenuItem();
+                newMenuItem.Header = "釘選類別管理";
+                newMenuItem.Click += PinManage_Click;
+                categoryMenu.Items.Add(newMenuItem);
 
-                pinItem = new MenuItem();
-                pinItem.Header = "變更位置";
-                pinItem.Click += MoveItem_Click;
-                categoryMenu.Items.Add(pinItem);
+                Separator separator = new Separator();
+                categoryMenu.Items.Add(separator);
 
-                pinItem = new MenuItem();
-                pinItem.Header = "重新命名";
-                pinItem.Click += RenameItem_Click;
-                categoryMenu.Items.Add(pinItem);
+                newMenuItem = new MenuItem();
+                newMenuItem.Header = "變更類別";
+                newMenuItem.Click += ChangeCategory_Click;
+                categoryMenu.Items.Add(newMenuItem);
 
-                pinItem = new MenuItem();
-                pinItem.Header = "刪除";
-                pinItem.Click += DeleteItem_Click;
-                categoryMenu.Items.Add(pinItem);
+                newMenuItem = new MenuItem();
+                newMenuItem.Header = "新增類別...";
+                newMenuItem.Click += AddItem_Click;
+                categoryMenu.Items.Add(newMenuItem);
+
+                newMenuItem = new MenuItem();
+                newMenuItem.Header = "變更位置";
+                newMenuItem.Click += MoveItem_Click;
+                categoryMenu.Items.Add(newMenuItem);
+
+                newMenuItem = new MenuItem();
+                newMenuItem.Header = "重新命名";
+                newMenuItem.Click += RenameItem_Click;
+                categoryMenu.Items.Add(newMenuItem);
+
+                newMenuItem = new MenuItem();
+                newMenuItem.Header = "刪除";
+                newMenuItem.Click += DeleteItem_Click;
+                categoryMenu.Items.Add(newMenuItem);
 
                 // show it
                 categoryMenu.IsOpen = true;
@@ -359,7 +373,10 @@ namespace DraggableTreeViewTest
             MyNode targetNode = tvCategory.SelectedItem as MyNode;
             if (targetNode != null)
             {
+                CategorySelectWindow mcw = new CategorySelectWindow(targetNode, tvCategory.ItemsSource as List<MyNode>, false);
+                mcw.ShowDialog();
 
+                // if success, refresh tree UI?
             }
         }
 
@@ -379,6 +396,22 @@ namespace DraggableTreeViewTest
             MyNode targetNode = tvCategory.SelectedItem as MyNode;
             if (targetNode != null)
                 targetNode.IsPinned = !targetNode.IsPinned;
+        }
+
+        private void PinManage_Click(object sender, RoutedEventArgs e)
+        {
+            PinnedCategoryManage pcm = new PinnedCategoryManage();
+            pcm.ShowDialog();
+        }
+
+        private void ChangeCategory_Click(object sender, RoutedEventArgs e)
+        {
+            MyNode targetNode = tvCategory.SelectedItem as MyNode;
+            if (targetNode != null)
+            {
+                CategoryMultiSelectWindow cmsw = new CategoryMultiSelectWindow(targetNode, false);
+                cmsw.ShowDialog();
+            }
         }
 
         #endregion

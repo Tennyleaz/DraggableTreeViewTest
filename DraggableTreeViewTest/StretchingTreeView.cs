@@ -46,6 +46,7 @@ namespace DraggableTreeViewTest
                     {
                         ClearTreeViewItemsControlSelection(tvi.Items, tvi.ItemContainerGenerator);
                         tvi.IsSelected = false;
+                        //return;  // <- this will cause current selection to be inactive, but not clear selection!
                     }
                 }
             }

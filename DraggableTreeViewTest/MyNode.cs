@@ -19,14 +19,28 @@ namespace DraggableTreeViewTest
             if (name != null)
                 Name = name;
             allChilrenID = new HashSet<string>();
-            IsExpand = false;
             allChilrenID.Add(this.ID);
             _parent = Parent;
+            _isExpand = false;            
+            _isCheckboxAvailable = true;
+            _count = 0;
+            _countWidth = 35;  // 預設寬度35
         }
 
         // Declare the event
         public event PropertyChangedEventHandler PropertyChanged;
-
+        public string ID { get; set; }
+        public string ParentID { get; set; }
+        public MyNode _parent;
+        public double CountWidth
+        {
+            get { return _countWidth; }
+            private set
+            {
+                _countWidth = value;
+                OnPropertyChanged("CountWidth");
+            }
+        }
         public string Name
         {
             get { return _name; }
@@ -36,9 +50,6 @@ namespace DraggableTreeViewTest
                 OnPropertyChanged("Name");
             }
         }
-        public string ID { get; set; }
-        public string ParentID { get; set; }
-        public MyNode _parent;
         public bool IsExpand
         {
             get { return _isExpand; }
@@ -58,11 +69,54 @@ namespace DraggableTreeViewTest
             }
         }
 
+        public int Count
+        {
+            get { return _count; }
+            set
+            {
+                _count = value;
+                if (value.ToString().Length >= 4)
+                    CountWidth = (value.ToString().Length) * 10 + 2;
+                else
+                    CountWidth = 35;              
+            }
+        }
+
+        /// <summary>
+        /// 給多選狀態使用的
+        /// </summary>
+        public bool IsChecked
+        {
+            get { return _isChecked; }
+            set
+            {
+                _isChecked = value;
+                OnPropertyChanged("IsChecked");
+            }
+        }
+
+        /// <summary>
+        /// 給多選狀態使用的
+        /// </summary>
+        public bool IsCheckboxAvailable
+        {
+            get { return _isCheckboxAvailable; }
+            set
+            {
+                _isCheckboxAvailable = value;
+                OnPropertyChanged("IsCheckboxAvailable");
+            }
+        }
+
         private HashSet<string> allChilrenID;
         //private int position = 0;
         private string _name;
         private bool _isExpand;
         private bool _isPinned;
+        private bool _isChecked;
+        private bool _isCheckboxAvailable;
+        private int _count;
+        private double _countWidth;
 
         public ObservableCollection<MyNode> Members { get; set; }
 
@@ -335,6 +389,16 @@ namespace DraggableTreeViewTest
             foreach (var child in Members)
             {
                 if (child.ID == id)
+                    return true;
+            }
+            return false;
+        }
+
+        public bool ContainsSameDirectChildName(string newChildName)
+        {
+            foreach (var child in Members)
+            {
+                if (child.Name == newChildName)
                     return true;
             }
             return false;
