@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DraggableTreeViewTest"
+        xmlns:dad="clr-namespace:DragAndDropLib;assembly=DragAndDropLib"
         mc:Ignorable="d"
         Title="CategoryPanel" Height="500" Width="300">
     <Window.Resources>
@@ -15,7 +16,7 @@
             <Setter Property="Focusable" Value="True"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Height" Value="40"/>
+            <Setter Property="Height" Value="43"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="Foreground" Value="#FF707070"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -65,6 +66,7 @@
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="Foreground" Value="#FF707070"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <!--<Setter Property="IsHitTestVisible" Value="{Binding IsHitTestVisible, Mode=TwoWay}"/>-->
             <Style.Triggers>
                 <Trigger Property="local:TreeViewDropHighlighter.IsPossibleDropTarget" Value="True">
                     <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ActiveCaptionBrushKey}}" />
@@ -92,8 +94,15 @@
             </Style.Resources>
         </Style>
 
+        <DataTemplate x:Key="listBoxDataTemplate" DataType="{x:Type local:MyNode}">
+            <StackPanel x:Name="stackPanel" Orientation="Vertical" Margin="5,10,5,10">
+                <TextBlock Text="{Binding Path=Name}" />
+                <TextBlock Text="{Binding Path=Count}" />
+            </StackPanel>
+        </DataTemplate>
+
     </Window.Resources>
-    <Grid Name="grMain">
+    <Grid Name="grMain" Background="White">
         <Grid Name="CategoryGrid" Panel.ZIndex="0" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="24" SharedSizeGroup="CategoryGroup"/>
@@ -108,59 +117,45 @@
 
             <StackPanel Name="treeViewGrid" Grid.Row="1">
                 <!--我的最愛&未校正聯絡人-->
-                <ListBox Name="FavoriteUncheckedListBox" SelectionMode="Single" BorderThickness="0">
-                    <ListBoxItem Style="{StaticResource listBoxStyle}">我的最愛</ListBoxItem>
-                    <ListBoxItem Style="{StaticResource listBoxStyle}">未校正聯絡人</ListBoxItem>
-                    <Separator/>
-                </ListBox>
-                <!--my tree view-->
-                <local:StretchingTreeView x:Name="tvCategory" AllowDrop="True" BorderBrush="Transparent"
-                                              TreeViewItem.Expanded="tvCategory_Expanded" 
-                                              ScrollViewer.VerticalScrollBarVisibility="Auto" 
-                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                              ItemContainerStyle="{StaticResource MyTreeStyle}">
-                    <TreeView.Resources>
-                        <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
-                            <!--definition of tree view item, wrapped by a grid-->
-                            <!--<Grid Margin="2" Height="36">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="20"/>
-                                    <ColumnDefinition Width="20"/>
-                                </Grid.ColumnDefinitions>
-                                --><!--tree text--><!--
-                                <TextBlock Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center"/>
-                                --><!--tree count text--><!--
-                                <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock Text=" [" Foreground="Blue"/>
-                                    <TextBlock Text="{Binding Members.Count}" Foreground="Blue"/>
-                                    <TextBlock Text="]" Foreground="Blue"/>
-                                </StackPanel>
-                                --><!--pinned icon--><!--
-                                <Image Grid.Column="2" Width="15" Height="15" Source="tree_pin.png" Visibility="{Binding IsPinned, Converter={StaticResource BoolToVis}}"/>
-                                <Grid.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Header"/>
-                                        <MenuItem Header="Copy"/>
-                                        <MenuItem Header="Cut"/>
-                                        <MenuItem Header="Paste"/>
-                                        <MenuItem Header="Move"/>
-                                    </ContextMenu>
-                                </Grid.ContextMenu>
-                            </Grid>-->
+                <ListBox Name="FavoriteUncheckedListBox" SelectionMode="Single" ItemsSource="{Binding }" BorderThickness="0" ItemContainerStyle="{StaticResource listBoxStyle}">
+                    <!--<ListBoxItem Style="{StaticResource listBoxStyle}">我的最愛</ListBoxItem>
+                    <ListBoxItem Style="{StaticResource listBoxStyle}">未校正聯絡人</ListBoxItem>-->
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:MyNode}">
                             <local:TreeItemTemplate/>
-                        </HierarchicalDataTemplate>
-                    </TreeView.Resources>
-                </local:StretchingTreeView>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <!--分隔線-->
+                <Separator/>
+                <!--my tree view-->
+                    <local:StretchingTreeView x:Name="tvCategory" BorderBrush="Transparent"
+                                                  TreeViewItem.Expanded="tvCategory_Expanded" 
+                                                  ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                  ItemContainerStyle="{StaticResource MyTreeStyle}">
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type local:MyNode}" ItemsSource="{Binding Members}">
+                                <local:TreeItemTemplate/>
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                    </local:StretchingTreeView>
             </StackPanel>
             
             <!--pinned listbox-->
-            <ListBox Grid.Row="1" SelectionMode="Single" x:Name="PinnedListBox" Background="Transparent" Focusable="True" Margin="0,0,4,3" 
-                     ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Visibility="Collapsed"
-                     IsSynchronizedWithCurrentItem="True" AllowDrop="True" BorderThickness="0"
-                     ItemsSource="{Binding pinnedCategory}"
-                     ItemContainerStyle="{StaticResource listBoxStyle}">
-            </ListBox>
+            <dad:ItemsControlDragDropDecorator Grid.Row="1" ItemType="{x:Type local:MyNode}" DataTemplate="{StaticResource listBoxDataTemplate}">
+                    <ListBox SelectionMode="Single" x:Name="PinnedListBox" Background="Transparent" Focusable="True" Margin="0,0,4,3" 
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Visibility="Collapsed"
+                         IsSynchronizedWithCurrentItem="True" AllowDrop="True" BorderThickness="0"
+                         ItemsSource="{Binding pinnedCategory}"
+                         ItemContainerStyle="{StaticResource listBoxStyle}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <local:TreeItemTemplate/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </dad:ItemsControlDragDropDecorator>
         </Grid>
 
 

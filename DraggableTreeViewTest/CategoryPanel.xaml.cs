@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +20,8 @@ namespace DraggableTreeViewTest
     /// </summary>
     public partial class CategoryPanel : Window
     {
-        public List<MyNode> pinnedCategory { get; private set; }
+        public ObservableCollection<MyNode> pinnedCategory { get; private set; }
+        public ObservableCollection<MyNode> defaultCategories { get; private set; }
         private MyTree myTree;
         private MyNode draggedItem;
         private Point startPoint;
@@ -40,7 +42,8 @@ namespace DraggableTreeViewTest
             tvCategory.DragEnter += tvCategory_DragEnter;
             tvCategory.DragOver += tvCategory_DragOver;
 
-            pinnedCategory = new List<MyNode>();
+            pinnedCategory = new ObservableCollection<MyNode>();
+            defaultCategories = new ObservableCollection<MyNode>();
             radioTree.IsChecked = true;
         }
 
@@ -52,7 +55,8 @@ namespace DraggableTreeViewTest
         private void GenerateFakeNodes()
         {
             MyNode root = new MyNode(null) { Name = "所有聯絡人" };
-            root.IsExpand = true;            
+            //root.IsExpand = true;
+            root.Count = 1000;
 
             MyNode others = new MyNode(root) { Name = "其他聯絡人" };
             root.AddMember(others);
@@ -74,14 +78,32 @@ namespace DraggableTreeViewTest
             root.AddMember(family1);
             root.AddMember(family2);
 
-
-            List<MyNode> families = new List<MyNode>();
-            families.Add(root);
-
-            tvCategory.ItemsSource = families;
-
             myTree = new MyTree();
-            myTree.rootNode = families[0];
+            tvCategory.ItemsSource = myTree.RootNodes;
+            myTree.Clear();
+
+            //List<MyNode> families = new List<MyNode>();
+            myTree.RootNodes.Add(root);
+
+            MyNode root2 = new MyNode(null) { Name = "root2" };
+            root2.IsExpand = true;
+            root2.Count = 1000;
+            myTree.RootNodes.Add(root2);
+
+            MyNode node2 = new MyNode(null) { Name = "node 2" };
+            node2.Count = 1;
+            root2.AddMember(node2);
+
+            MyNode node3 = new MyNode(null) { Name = "node 3" };
+            myTree.AddNodeAt(root2.ID, node3);
+
+            MyNode favorites = new MyNode(null) { Name = "我的最愛" };
+            MyNode unChecked = new MyNode(null) { Name = "未校正聯絡人" };
+            defaultCategories.Add(favorites);
+            defaultCategories.Add(unChecked);
+            FavoriteUncheckedListBox.ItemsSource = defaultCategories;
+            pinnedCategory.Add(favorites);
+            PinnedListBox.ItemsSource = defaultCategories;
         }
 
         private void FavoriteUncheckedListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -201,7 +223,7 @@ namespace DraggableTreeViewTest
                 return;
             if (dropTarget.ID == movingNode.ID)  // same node cannot move
                 return;
-            if (movingNode.ID == myTree.rootNode.ID)  // root cannot move
+            if (myTree.IsRootLevelNodeId(movingNode.ID))  // root cannot move
                 return;
             if (movingNode.ContainsNode(dropTarget.ID))  // cannot move into self child
                 return;

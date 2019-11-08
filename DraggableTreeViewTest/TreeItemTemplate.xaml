@@ -21,15 +21,11 @@
         <!--tree text-->
         <TextBlock Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center" Foreground="#FF707070" FontFamily="Microsoft JhengHei"/>
         <!--tree count text-->
-        <Border Name="Border_Count" Grid.Column="1" Width="{Binding CountWidth}" Height="20" Background="#D9D9D9" 
+        <Border Name="Border_Count" Grid.Column="1" Width="35" Height="20" Background="#D9D9D9" 
                 VerticalAlignment="Center" HorizontalAlignment="Right" CornerRadius="10">
-            <TextBlock Text="{Binding Count}" Foreground="#494949" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock  Name="tbCount" Foreground="#494949" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                        Text="{Binding Count, NotifyOnTargetUpdated=True}" TargetUpdated="TextBlock_TargetUpdated"/>
         </Border>
-        <!--<StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <TextBlock Text=" [" Foreground="Blue"/>
-            <TextBlock Text="{Binding Members.Count}" Foreground="Blue"/>
-            <TextBlock Text="]" Foreground="Blue"/>
-        </StackPanel>-->
         <!--pinned icon-->
         <Image Grid.Column="2" Width="15" Height="15" Source="tree_pin.png" Visibility="{Binding IsPinned, Converter={StaticResource BoolToVis}}"/>
     </Grid>

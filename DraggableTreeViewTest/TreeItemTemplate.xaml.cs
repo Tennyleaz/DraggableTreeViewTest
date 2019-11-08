@@ -24,5 +24,16 @@ namespace DraggableTreeViewTest
         {
             InitializeComponent();
         }
+
+        private void TextBlock_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            /// Update border width by text value,
+            /// see: https://stackoverflow.com/a/32233156/3576052
+            string value = tbCount.Text;
+            if (value.ToString().Length >= 4)
+                Border_Count.Width = (value.ToString().Length) * 10 + 2;
+            else
+                Border_Count.Width = 35;
+        }
     }
 }

@@ -53,9 +53,9 @@ namespace DraggableTreeViewTest
             }
             else
             {
-                tvCategory.ItemsSource = _vCategories;
                 myTree = new MyTree();
-                myTree.rootNode = _vCategories[0];
+                myTree.RootNodes.Add(_vCategories[0]);
+                tvCategory.ItemsSource = myTree.RootNodes;
             }
         }
 

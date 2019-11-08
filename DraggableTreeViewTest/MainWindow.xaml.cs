@@ -59,10 +59,9 @@ namespace DraggableTreeViewTest
             List<MyNode> families = new List<MyNode>();
             families.Add(root);
 
-            trvFamilies.ItemsSource = families;
-
             myTree = new MyTree();
-            myTree.rootNode = families[0];
+            trvFamilies.ItemsSource = families;
+            myTree.RootNodes.Add(families[0]);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -202,7 +201,7 @@ namespace DraggableTreeViewTest
                 return;
             if (dropTarget.ID == movingNode.ID)
                 return;
-            if (movingNode.ID == myTree.rootNode.ID)
+            if (myTree.IsRootLevelNodeId(movingNode.ID))
                 return;
             if (movingNode.ContainsNode(dropTarget.ID))
                 return;
@@ -302,7 +301,7 @@ namespace DraggableTreeViewTest
             MyNode f = trvFamilies.SelectedItem as MyNode;
             if (f != null)
             {
-                myTree.MoveUp(f);
+                //myTree.MoveUp(f);
             }
         }
 
@@ -311,7 +310,7 @@ namespace DraggableTreeViewTest
             MyNode f = trvFamilies.SelectedItem as MyNode;
             if (f != null)
             {
-                myTree.MoveDown(f);
+                //myTree.MoveDown(f);
             }
         }
 

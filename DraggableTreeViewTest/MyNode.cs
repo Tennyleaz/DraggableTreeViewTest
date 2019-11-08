@@ -23,8 +23,7 @@ namespace DraggableTreeViewTest
             _parent = Parent;
             _isExpand = false;            
             _isCheckboxAvailable = true;
-            _count = 0;
-            _countWidth = 35;  // 預設寬度35
+            _isHitTestVisible = true;
         }
 
         // Declare the event
@@ -32,15 +31,6 @@ namespace DraggableTreeViewTest
         public string ID { get; set; }
         public string ParentID { get; set; }
         public MyNode _parent;
-        public double CountWidth
-        {
-            get { return _countWidth; }
-            private set
-            {
-                _countWidth = value;
-                OnPropertyChanged("CountWidth");
-            }
-        }
         public string Name
         {
             get { return _name; }
@@ -75,10 +65,7 @@ namespace DraggableTreeViewTest
             set
             {
                 _count = value;
-                if (value.ToString().Length >= 4)
-                    CountWidth = (value.ToString().Length) * 10 + 2;
-                else
-                    CountWidth = 35;              
+                OnPropertyChanged("Count");
             }
         }
 
@@ -116,7 +103,17 @@ namespace DraggableTreeViewTest
         private bool _isChecked;
         private bool _isCheckboxAvailable;
         private int _count;
-        private double _countWidth;
+        private bool _isHitTestVisible;
+
+        public bool IsHitTestVisible
+        {
+            get => _isHitTestVisible;
+            set
+            {
+                _isHitTestVisible = value;
+                OnPropertyChanged("IsHitTestVisible");
+            }
+        }
 
         public ObservableCollection<MyNode> Members { get; set; }
 

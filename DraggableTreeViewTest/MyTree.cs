@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,10 +14,10 @@ namespace DraggableTreeViewTest
     {
         public MyTree()
         {
-            rootNode = new MyNode(null);
+            RootNodes = new ObservableCollection<MyNode>();
             cateNames = new HashSet<string>();
         }
-        public MyNode rootNode;
+        public ObservableCollection<MyNode> RootNodes;
         private MyNode cutTemplate = null;
         private HashSet<string> cateNames;
         private string lastExpandedNodeID = null;
@@ -36,45 +37,70 @@ namespace DraggableTreeViewTest
             if (lastExpandedNodeID == newGuid)
                 return;
 
-            rootNode.CollapseOldNode(lastExpandedNodeID, newGuid);
+            foreach (var root in RootNodes)
+            {
+                if (root.ContainsNode(lastExpandedNodeID))
+                {
+                    root.CollapseOldNode(lastExpandedNodeID, newGuid);
+                    break;
+                }
+            }
 
             lastExpandedNodeID = newGuid;
         }
 
-        public bool AddNodeUnderRoot(MyNode newNode)
+        /*public bool AddNodeUnderRoot(MyNode newNode)
         {
-            /*if (cateNames.Contains(newNode.Name))
-            {
-                WSBSystem.WSSystem.GetSystem().ShowMessageBox("名稱重複了");
-                return false;
-            }*/
-            rootNode.AddMember(newNode);
-            //cateNames.Add(newNode.Name);
-            return true;
-        }
-
-        public bool AddNodeAt(string guid, MyNode newNode)
-        {
-            /*if (cateNames.Contains(newNode.Name))
+            if (cateNames.Contains(newNode.Name))
             {
                 WSBSystem.WSSystem.GetSystem().ShowMessageBox("名稱重複了");
                 return false;
             }
-            cateNames.Add(newNode.Name);*/
-            return rootNode.AddNodeAt(guid, newNode);
+            rootNode.AddMember(newNode);
+            //cateNames.Add(newNode.Name);
+            return true;
+        }*/
+
+        public bool AddNodeAt(string guid, MyNode newNode)
+        {
+            foreach (var root in RootNodes)
+            {
+                if (root.ContainsNode(guid))
+                    return root.AddNodeAt(guid, newNode);
+            }
+            // 找不到的狀況，加入root尾端
+            RootNodes.Add(newNode);
+            return true;
         }
 
         public bool DeleteNode(MyNode node)
         {
-            if (rootNode.ID == node.ID)
-                return false;
-            //cateNames.Remove(node.Name);
-            return rootNode.DeleteChild(node.ID);
+            bool bSuccess = false;
+            foreach (var root in RootNodes)
+            {
+                if (root.ID == node.ID)
+                    return false;
+                if (root.ContainsNode(node.ID))
+                {
+                    bSuccess = root.DeleteChild(node.ID);
+                    break;
+                }
+            }
+            if (bSuccess)
+                lastExpandedNodeID = node.ParentID;
+            return bSuccess;
         }
 
         public bool DeleteBranch(MyNode node)
         {
-            return rootNode.DeleteChildBranch(node);
+            foreach (var root in RootNodes)
+            {
+                if (root.ContainsNode(node.ID))
+                {
+                    return root.DeleteChildBranch(node);
+                }
+            }
+            return false;
         }
 
         public bool RenameNode(string newName)
@@ -90,7 +116,7 @@ namespace DraggableTreeViewTest
             return true;
         }
 
-        public bool MoveUp(MyNode node)
+        /*public bool MoveUp(MyNode node)
         {
             string parentID = node.ParentID;
             return rootNode.MoveUp(parentID, node);
@@ -100,23 +126,60 @@ namespace DraggableTreeViewTest
         {
             string parentID = node.ParentID;
             return rootNode.MoveDown(parentID, node);
-        }
+        }*/
 
         public void Cut(MyNode node)
         {
             cutTemplate = node;
             cutTemplate._parent = null;
-            rootNode.DeleteChildBranch(node);
+            foreach (var root in RootNodes)
+            {
+                if (root.ContainsNode(node.ID))
+                {
+                    if (root.DeleteChildBranch(node))
+                        lastExpandedNodeID = node.ParentID;
+                    break;
+                }
+            }
         }
 
         public bool Paste(string parentID)
         {
-            if (rootNode.AddNodeAt(parentID, cutTemplate))
+            foreach (var root in RootNodes)
             {
-                cutTemplate = null;
-                return true;
+                if (root.ContainsNode(parentID))
+                {
+                    if (root.AddNodeAt(parentID, cutTemplate))
+                    {
+                        cutTemplate = null;
+                        return true;
+                    }
+                }
             }
             return false;
+        }
+
+        public bool IsRootLevelNodeId(string nodeID)
+        {
+            foreach (var root in RootNodes)
+            {
+                if (nodeID == root.ID)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 清除整個 RootNodes collection
+        /// </summary>
+        public void Clear()
+        {
+            //RootNodes = null;
+            RootNodes.Clear();
+            cutTemplate = null;
+            lastExpandedNodeID = null;
+            GC.Collect();
+            //RootNodes = new ObservableCollection<MyNode>();
         }
     }
 

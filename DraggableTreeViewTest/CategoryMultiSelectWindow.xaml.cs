@@ -38,6 +38,8 @@ namespace DraggableTreeViewTest
 
         private void GenerateFakeNodes()
         {
+            myTree = new MyTree();
+
             MyNode root = new MyNode(null) { Name = "所有聯絡人" };
             root.IsExpand = true;
             root.IsCheckboxAvailable = _isRootCheckable;  // 變更自己類別時候所有聯絡人不能選，變更秘書卡片的時候可以額外勾選root node
@@ -63,13 +65,12 @@ namespace DraggableTreeViewTest
             root.AddMember(family2);
 
 
-            List<MyNode> families = new List<MyNode>();
-            families.Add(root);
+            //List<MyNode> families = new List<MyNode>();
+            //families.Add(root);
 
-            tvCategory.ItemsSource = families;
-
-            myTree = new MyTree();
-            myTree.rootNode = families[0];
+            tvCategory.ItemsSource = myTree.RootNodes;
+            myTree.Clear();
+            myTree.RootNodes.Add(root);
         }
 
         private void tvCategory_Expanded(object sender, RoutedEventArgs e)
